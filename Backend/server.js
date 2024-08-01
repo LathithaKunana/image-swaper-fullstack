@@ -5,6 +5,11 @@ const multer = require('multer');
 const cors = require('cors');
 const env = require('dotenv');
 
+// Initialize environment variables
+env.config(); // https://image-swapper-frontend.vercel.app/
+
+const app = express();
+const port = 3000; // You can use any available port
 
 const corsOptions = {
     origin: "https://image-swapper-frontend.vercel.app",
@@ -13,13 +18,6 @@ const corsOptions = {
 
 // Apply CORS middleware globally
 app.use(cors(corsOptions));
-
-
-// Initialize environment variables
-env.config(); // https://image-swapper-frontend.vercel.app/
-
-const app = express();
-const port = 3000; // You can use any available port
 
 app.use(express.json());
 
