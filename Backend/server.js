@@ -12,7 +12,7 @@ const app = express();
 const port = 3000; // You can use any available port
 
 const corsOptions = {
-    origin: "https://image-swapper-frontend.vercel.app/",
+    origin: "https://image-swapper-frontend.vercel.app",
     optionsSuccessStatus: 200,
 };
 
