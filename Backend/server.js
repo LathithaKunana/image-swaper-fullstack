@@ -88,7 +88,7 @@ app.post('/api/face-swap', upload.fields([{ name: 'target_image' }, { name: 'swa
         console.error('Error retrieving result:', error);
         res.status(500).json({ error: 'An error occurred while retrieving the result' });
       }
-    }, 5000); // Adjust the delay as needed
+    }, 2000); // Adjust the delay as needed
   } catch (error) {
     console.error('Error processing request:', error);
     res.status(500).json({ error: 'An error occurred' });
