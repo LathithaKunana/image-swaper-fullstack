@@ -6,12 +6,24 @@ const cors = require('cors');
 const env = require('dotenv');
 
 // Initialize environment variables
-env.config();
+env.config(); // https://image-swapper-frontend.vercel.app/
 
 const app = express();
 const port = 3000; // You can use any available port
 
-app.use(cors());
+const corsOptions = {
+    origin: "https://image-swapper-frontend.vercel.app",
+    optionsSuccessStatus: 200,
+  };
+  app.use(cors(corsOptions)); // Ensure CORS is applied globally
+  
+  // Additional middleware to manually set CORS headers
+  app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "https://image-swapper-frontend.vercel.app");
+    res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE");
+    res.header("Access-Control-Allow-Headers", "Content-Type");
+    next();
+  });
 app.use(express.json());
 
 // Set up multer for file handling
