@@ -72,8 +72,15 @@ function ImageSwipper() {
   const handleDownload = async () => {
     if (result) {
       try {
+        console.log('Attempting to download image from URL:', result);
+  
         // Fetch the image data
-        const response = await fetch(result);
+        const response = await fetch(result, { mode: 'cors' });
+  
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+  
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
   
@@ -87,11 +94,14 @@ function ImageSwipper() {
   
         // Clean up the Blob URL
         window.URL.revokeObjectURL(url);
+  
+        console.log('Download successful');
       } catch (error) {
         console.error('Download error:', error);
       }
     }
   };
+  
   
 
   return (
