@@ -56,7 +56,7 @@ function ImageSwipper() {
     }
 
     try {
-      const { data } = await axios.post('https://image-swipper-backend.vercel.app/api/face-swap', formData, {
+      const { data } = await axios.post('http://localhost:3000/api/face-swap', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -70,13 +70,20 @@ function ImageSwipper() {
     setLoading(false);
   };
 
+  const ensureHttps = (url) => {
+    if (url.startsWith('http://')) {
+      return url.replace('http://', 'https://');
+    }
+    return url;
+  };
+  
   const handleDownload = async () => {
     if (result) {
       try {
-        console.log('Attempting to download image from URL:', result);
+        const httpsUrl = ensureHttps(result);
+        console.log('Attempting to download image from URL:', httpsUrl);
   
-        // Fetch the image data from your server
-        const response = await fetch(`/api/download-image?url=${encodeURIComponent(result)}`);
+        const response = await fetch(`https://image-swipper-backend.vercel.app/api/download-image?url=${encodeURIComponent(httpsUrl)}`);
   
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -91,6 +98,7 @@ function ImageSwipper() {
       }
     }
   };
+  
   
   
 
