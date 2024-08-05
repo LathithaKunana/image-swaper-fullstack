@@ -4,6 +4,8 @@ const FormData = require('form-data');
 const multer = require('multer');
 const cors = require('cors');
 const env = require('dotenv');
+const cloudinary = require('cloudinary').v2;
+
 
 // Initialize environment variables
 env.config(); // https://image-swapper-frontend.vercel.app/
@@ -11,40 +13,53 @@ env.config(); // https://image-swapper-frontend.vercel.app/
 const app = express();
 const port = 3000; // You can use any available port
 
-// const corsOptions = {
-//     origin: "https://image-swapper-frontend.vercel.app",
-//     optionsSuccessStatus: 200,
-// };
 
 // Apply CORS middleware globally
 app.use(cors({
-    origin: 'https://image-swapper-frontend.vercel.app' 
+    origin: 'http://localhost:5173' 
   }));
 
 app.use(express.json());
+
+// Configure your Cloudinary credentials
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
 
 // Set up multer for file handling
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 app.post('/api/face-swap', upload.fields([{ name: 'target_image' }, { name: 'swap_image' }]), async (req, res) => {
-  const { target_url, swap_url } = req.body;
-  const targetImage = req.files['target_image'] ? req.files['target_image'][0] : null;
-  const swapImage = req.files['swap_image'] ? req.files['swap_image'][0] : null;
-
   try {
     const form = new FormData();
 
-    if (targetImage) {
-      form.append('target_image', targetImage.buffer, targetImage.originalname);
+    const uploadImage = async (image) => {
+      return new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream((error, result) => {
+          if (error) return reject(error);
+          resolve(result.secure_url); // Get the URL of the uploaded image
+        }).end(image.buffer);
+      });
+    };
+
+    if (req.files['target_image']) {
+      const targetImage = req.files['target_image'][0];
+      const targetImageUrl = await uploadImage(targetImage);
+      form.append('target_url', targetImageUrl);
     } else {
-      form.append('target_url', target_url);
+      form.append('target_url', req.body.target_url);
     }
 
-    if (swapImage) {
-      form.append('swap_image', swapImage.buffer, swapImage.originalname);
+    if (req.files['swap_image']) {
+      const swapImage = req.files['swap_image'][0];
+      const swapImageUrl = await uploadImage(swapImage);
+      form.append('swap_url', swapImageUrl);
     } else {
-      form.append('swap_url', swap_url);
+      form.append('swap_url', req.body.swap_url);
     }
 
     const rapidApiHost = 'faceswap3.p.rapidapi.com';
@@ -57,10 +72,8 @@ app.post('/api/face-swap', upload.fields([{ name: 'target_image' }, { name: 'swa
       },
     });
 
-    // Log the response to check its structure
     console.log('Initial API Response:', response.data);
 
-    // Access request_id from the nested structure
     const requestId = response.data.image_process_response.request_id;
 
     if (!requestId) {
@@ -81,19 +94,20 @@ app.post('/api/face-swap', upload.fields([{ name: 'target_image' }, { name: 'swa
           },
         });
 
-        res.setHeader('Access-Control-Allow-Origin', 'https://image-swapper-frontend.vercel.app');
+        res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
         console.log('Result API Response:', resultResponse.data);
         res.json(resultResponse.data);
       } catch (error) {
         console.error('Error retrieving result:', error);
         res.status(500).json({ error: 'An error occurred while retrieving the result' });
       }
-    }, 2000); // Adjust the delay as needed
+    }, 3000);
   } catch (error) {
     console.error('Error processing request:', error);
     res.status(500).json({ error: 'An error occurred' });
   }
 });
+
 
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
