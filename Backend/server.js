@@ -15,7 +15,7 @@ const port = 3000; // You can use any available port
 // Apply CORS middleware globally
 app.use(
   cors({
-    origin: 'http://localhost:5173',
+    origin: 'https://image-swapper-frontend.vercel.app',
   })
 );
 
@@ -93,7 +93,7 @@ app.post('/api/face-swap', upload.fields([{ name: 'target_image' }, { name: 'swa
           },
         });
 
-        res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
+        res.setHeader('Access-Control-Allow-Origin', 'https://image-swapper-frontend.vercel.app');
         console.log('Result API Response:', resultResponse.data);
         res.json(resultResponse.data);
       } catch (error) {
