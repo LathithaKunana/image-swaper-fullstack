@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import {saveAs} from 'file-saver'
 
 function ImageSwipper() {
   const [targetUrl, setTargetUrl] = useState('');
@@ -55,7 +56,7 @@ function ImageSwipper() {
     }
 
     try {
-      const { data } = await axios.post('https://image-swipper-backend.vercel.app/api/face-swap', formData, {
+      const { data } = await axios.post('http://localhost:3000/api/face-swap', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -70,38 +71,26 @@ function ImageSwipper() {
   };
 
   const handleDownload = async () => {
-    if (result) {
-      try {
-        console.log('Attempting to download image from URL:', result);
-  
-        // Fetch the image data
-        const response = await fetch(result, { mode: 'cors' });
-  
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-  
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-  
-        // Create a temporary link element
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'result-image.jpg'; // Specify the file name and extension
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-  
-        // Clean up the Blob URL
-        window.URL.revokeObjectURL(url);
-  
-        console.log('Download successful');
-      } catch (error) {
-        console.error('Download error:', error);
+  if (result) {
+    try {
+      console.log('Attempting to download image from URL:', result);
+
+      // Fetch the image data
+      const response = await fetch(result, { mode: 'cors' });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
+
+      const blob = await response.blob();
+      saveAs(blob, 'result-image.jpg'); // Use file-saver to handle download
+
+      console.log('Download successful');
+    } catch (error) {
+      console.error('Download error:', error);
     }
-  };
-  
+  }
+};
   
 
   return (
