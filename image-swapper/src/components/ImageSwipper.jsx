@@ -56,7 +56,7 @@ function ImageSwipper() {
     }
 
     try {
-      const { data } = await axios.post('http://image-swipper-backend.vercel.app/api/face-swap', formData, {
+      const { data } = await axios.post('https://image-swipper-backend.vercel.app/api/face-swap', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
