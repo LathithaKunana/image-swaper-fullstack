@@ -56,7 +56,7 @@ function ImageSwipper() {
     }
 
     try {
-      const { data } = await axios.post('https://image-swipper-backend.vercel.app/api/face-swap', formData, {
+      const { data } = await axios.post('http://localhost:3000/api/face-swap', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -83,7 +83,7 @@ function ImageSwipper() {
         const httpsUrl = ensureHttps(result);
         console.log('Attempting to download image from URL:', httpsUrl);
   
-        const response = await fetch(`https://image-swipper-backend.vercel.app/api/download-image?url=${encodeURIComponent(httpsUrl)}`);
+        const response = await fetch(`http://localhost:3000/api/download-image?url=${encodeURIComponent(httpsUrl)}`);
   
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -103,7 +103,7 @@ function ImageSwipper() {
   
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-800 flex items-center justify-center p-4">
       <div className="w-full max-w-3xl bg-white rounded-lg shadow-md p-6">
         <h1 className="text-2xl font-semibold mb-4 text-center">Face Swap Tool</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
