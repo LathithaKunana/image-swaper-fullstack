@@ -6,18 +6,18 @@ const cors = require('cors');
 const env = require('dotenv');
 const cloudinary = require('cloudinary').v2;
 
-
 // Initialize environment variables
 env.config(); // https://image-swapper-frontend.vercel.app/
 
 const app = express();
 const port = 3000; // You can use any available port
 
-
 // Apply CORS middleware globally
-app.use(cors({
-    origin: 'https://image-swapper-frontend.vercel.app' 
-  }));
+app.use(
+  cors({
+    origin: 'https://image-swapper-frontend.vercel.app',
+  })
+);
 
 app.use(express.json());
 
@@ -27,7 +27,6 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-
 
 // Set up multer for file handling
 const storage = multer.memoryStorage();
@@ -101,13 +100,31 @@ app.post('/api/face-swap', upload.fields([{ name: 'target_image' }, { name: 'swa
         console.error('Error retrieving result:', error);
         res.status(500).json({ error: 'An error occurred while retrieving the result' });
       }
-    }, 1000);
+    }, 1500);
   } catch (error) {
     console.error('Error processing request:', error);
     res.status(500).json({ error: 'An error occurred' });
   }
 });
 
+// New endpoint to download the image
+app.get('/api/download-image', async (req, res) => {
+  const imageUrl = req.query.url;
+  
+  try {
+    // Fetch the image data from the given URL
+    const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+    
+    // Set the response content type to the correct MIME type
+    res.setHeader('Content-Type', response.headers['content-type']);
+    
+    // Send the image data back to the client
+    res.send(response.data);
+  } catch (error) {
+    console.error('Error downloading image:', error);
+    res.status(500).json({ error: 'Failed to download image' });
+  }
+});
 
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
