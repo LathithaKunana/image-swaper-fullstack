@@ -56,7 +56,7 @@ function ImageSwipper() {
     }
 
     try {
-      const { data } = await axios.post('https://image-swipper-backend.vercel.app/api/face-swap', formData, {
+      const { data } = await axios.post('http://image-swipper-backend.vercel.app/api/face-swap', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -71,26 +71,27 @@ function ImageSwipper() {
   };
 
   const handleDownload = async () => {
-  if (result) {
-    try {
-      console.log('Attempting to download image from URL:', result);
-
-      // Fetch the image data
-      const response = await fetch(result, { mode: 'cors' });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+    if (result) {
+      try {
+        console.log('Attempting to download image from URL:', result);
+  
+        // Fetch the image data from your server
+        const response = await fetch(`/api/download-image?url=${encodeURIComponent(result)}`);
+  
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+  
+        const blob = await response.blob();
+        saveAs(blob, 'result-image.jpg');
+  
+        console.log('Download successful');
+      } catch (error) {
+        console.error('Download error:', error);
       }
-
-      const blob = await response.blob();
-      saveAs(blob, 'result-image.jpg'); // Use file-saver to handle download
-
-      console.log('Download successful');
-    } catch (error) {
-      console.error('Download error:', error);
     }
-  }
-};
+  };
+  
   
 
   return (
