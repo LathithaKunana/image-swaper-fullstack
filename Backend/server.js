@@ -15,7 +15,7 @@ const port = 3000; // You can use any available port
 // Apply CORS middleware globally
 app.use(
   cors({
-    origin: 'http://localhost:5173',
+    origin: 'https://image-swapper-frontend.vercel.app',
   })
 );
 
@@ -45,21 +45,28 @@ app.post('/api/face-swap', upload.fields([{ name: 'target_image' }, { name: 'swa
       });
     };
 
+    let targetImageUrl = req.body.target_url;
+    let swapImageUrl = req.body.swap_url;
+
     if (req.files['target_image']) {
       const targetImage = req.files['target_image'][0];
-      const targetImageUrl = await uploadImage(targetImage);
+      targetImageUrl = await uploadImage(targetImage);
       form.append('target_url', targetImageUrl);
     } else {
-      form.append('target_url', req.body.target_url);
+      form.append('target_url', targetImageUrl);
     }
 
     if (req.files['swap_image']) {
       const swapImage = req.files['swap_image'][0];
-      const swapImageUrl = await uploadImage(swapImage);
+      swapImageUrl = await uploadImage(swapImage);
       form.append('swap_url', swapImageUrl);
     } else {
-      form.append('swap_url', req.body.swap_url);
+      form.append('swap_url', swapImageUrl);
     }
+
+    // Log URLs before making API request
+    console.log('Target URL:', targetImageUrl);
+    console.log('Swap URL:', swapImageUrl);
 
     const rapidApiHost = 'faceswap3.p.rapidapi.com';
 
@@ -93,14 +100,14 @@ app.post('/api/face-swap', upload.fields([{ name: 'target_image' }, { name: 'swa
           },
         });
 
-        res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
+        res.setHeader('Access-Control-Allow-Origin', 'https://image-swapper-frontend.vercel.app');
         console.log('Result API Response:', resultResponse.data);
         res.json(resultResponse.data);
       } catch (error) {
         console.error('Error retrieving result:', error);
         res.status(500).json({ error: 'An error occurred while retrieving the result' });
       }
-    }, 1800);
+    }, 1800); // Increase delay if necessary
   } catch (error) {
     console.error('Error processing request:', error);
     res.status(500).json({ error: 'An error occurred' });

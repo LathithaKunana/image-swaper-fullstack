@@ -1,22 +1,35 @@
-// MediaBar.jsx
-
-import React, { useState } from "react";
-import { storage } from "../firebase/firebase";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import React, { useState, useEffect } from "react";
 import { PlusCircleIcon, TrashIcon, ChevronLeftIcon } from "@heroicons/react/solid";
+import axios from 'axios';
 
-function MediaBar({ toggleMediaBar }) {
+function MediaBar({ toggleMediaBar, onUpload }) {
   const [uploadedImages, setUploadedImages] = useState([]);
+
+  useEffect(() => {
+    // Notify parent component of the uploaded images
+    onUpload(uploadedImages);
+  }, [uploadedImages, onUpload]);
 
   const handleFileUpload = async (event) => {
     const files = event.target.files;
     const imageUrls = [];
+    
     for (const file of files) {
-      const storageRef = ref(storage, `uploads/${file.name}`);
-      await uploadBytes(storageRef, file);
-      const downloadURL = await getDownloadURL(storageRef);
-      imageUrls.push(downloadURL);
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', 'rwba17nn'); // Replace with your Cloudinary upload preset
+
+        // Upload to Cloudinary
+        const response = await axios.post(`https://api.cloudinary.com/v1_1/dnryho2ce/image/upload`, formData);
+        
+        const downloadURL = response.data.secure_url;
+        imageUrls.push(downloadURL);
+      } catch (error) {
+        console.error('Error uploading to Cloudinary:', error);
+      }
     }
+
     setUploadedImages((prevImages) => [...prevImages, ...imageUrls]);
   };
 
