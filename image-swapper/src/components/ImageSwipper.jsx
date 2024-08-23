@@ -3,55 +3,62 @@ import axios from 'axios';
 import { saveAs } from 'file-saver';
 
 function ImageSwipper({ uploadedImages }) {
-  const [targetUrl, setTargetUrl] = useState('');
-  const [targetImage, setTargetImage] = useState(null);
-  const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [targetPreview, setTargetPreview] = useState('');
+  const [targetUrl, setTargetUrl] = useState(''); // State to store the URL of the target image
+  const [targetImage, setTargetImage] = useState(null); // State to store the uploaded target image file
+  const [result, setResult] = useState(null); // State to store the result URL from the face swap API
+  const [loading, setLoading] = useState(false); // State to manage loading state
+  const [targetPreview, setTargetPreview] = useState(''); // State to store the preview URL of the target image
 
+  // Effect to update target image preview when the image or URL changes
   useEffect(() => {
     if (targetImage) {
       const reader = new FileReader();
       reader.onloadend = () => {
         setTargetPreview(reader.result);
       };
-      reader.readAsDataURL(targetImage);
+      reader.readAsDataURL(targetImage); // Convert the file to a data URL for preview
     } else {
-      setTargetPreview(targetUrl);
+      setTargetPreview(targetUrl); // Use the URL directly if no file is uploaded
     }
   }, [targetUrl, targetImage]);
 
+  // Handler for form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setLoading(true); // Set loading to true while processing
 
+    // Randomly select an image URL from the uploaded images
     const randomIndex = Math.floor(Math.random() * uploadedImages.length);
     const randomSwapImageUrl = uploadedImages[randomIndex];
 
+    // Prepare FormData for the face swap API request
     const formData = new FormData();
     if (targetImage) {
-      formData.append('target_image', targetImage);
+      formData.append('target_image', targetImage); // Append the uploaded image file
     } else {
-      formData.append('target_url', targetUrl);
+      formData.append('target_url', targetUrl); // Append the URL if no file is uploaded
     }
 
-    formData.append('swap_url', randomSwapImageUrl);
+    formData.append('swap_url', randomSwapImageUrl); // Append the swap image URL
 
     try {
+      // Make a POST request to the face swap API
       const { data } = await axios.post('https://image-swipper-backend.vercel.app/api/face-swap', formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': 'multipart/form-data', // Set content type for FormData
         },
       });
 
+      // Update the result state with the URL of the processed image
       setResult(data.image_process_response.result_url);
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error:', error); // Log any errors
     }
 
-    setLoading(false);
+    setLoading(false); // Set loading to false after processing
   };
 
+  // Function to ensure the URL uses HTTPS
   const ensureHttps = (url) => {
     if (url.startsWith('http://')) {
       return url.replace('http://', 'https://');
@@ -59,24 +66,27 @@ function ImageSwipper({ uploadedImages }) {
     return url;
   };
 
+  // Handler for downloading the result image
   const handleDownload = async () => {
     if (result) {
       try {
-        const httpsUrl = ensureHttps(result);
+        const httpsUrl = ensureHttps(result); // Ensure the URL uses HTTPS
         console.log('Attempting to download image from URL:', httpsUrl);
 
+        // Fetch the image from the backend
         const response = await fetch(`https://image-swipper-backend.vercel.app/api/download-image?url=${encodeURIComponent(httpsUrl)}`);
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
+        // Convert the response to a blob and save the file
         const blob = await response.blob();
         saveAs(blob, 'result-image.jpg');
 
         console.log('Download successful');
       } catch (error) {
-        console.error('Download error:', error);
+        console.error('Download error:', error); // Log any errors during download
       }
     }
   };

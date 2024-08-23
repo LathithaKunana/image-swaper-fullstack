@@ -1,3 +1,5 @@
+//Ignore not used in app
+
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getStorage } from "firebase/storage";
@@ -6,11 +8,11 @@ import { getStorage } from "firebase/storage";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyBmMTGvIcoXot51yVCrZe5l4UaOrhp60v8",
+  apiKey: "XXXXXXXXXXXXXXXXXXX",
   authDomain: "image-swapper.firebaseapp.com",
   projectId: "image-swapper",
   storageBucket: "image-swapper.appspot.com",
-  messagingSenderId: "907685443986",
+  messagingSenderId: "XXXXXXXXX",
   appId: "1:907685443986:web:fad45cfc18e3710f69294b"
 };
 
