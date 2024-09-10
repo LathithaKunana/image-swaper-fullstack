@@ -3,62 +3,56 @@ import axios from 'axios';
 import { saveAs } from 'file-saver';
 
 function ImageSwipper({ uploadedImages }) {
-  const [targetUrl, setTargetUrl] = useState(''); // State to store the URL of the target image
-  const [targetImage, setTargetImage] = useState(null); // State to store the uploaded target image file
-  const [result, setResult] = useState(null); // State to store the result URL from the face swap API
-  const [loading, setLoading] = useState(false); // State to manage loading state
-  const [targetPreview, setTargetPreview] = useState(''); // State to store the preview URL of the target image
+  const [targetUrl, setTargetUrl] = useState('');
+  const [targetImage, setTargetImage] = useState(null);
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [targetPreview, setTargetPreview] = useState('');
+  const [isMergeMode, setIsMergeMode] = useState(true); // New state for toggle
 
-  // Effect to update target image preview when the image or URL changes
   useEffect(() => {
     if (targetImage) {
       const reader = new FileReader();
       reader.onloadend = () => {
         setTargetPreview(reader.result);
       };
-      reader.readAsDataURL(targetImage); // Convert the file to a data URL for preview
+      reader.readAsDataURL(targetImage);
     } else {
-      setTargetPreview(targetUrl); // Use the URL directly if no file is uploaded
+      setTargetPreview(targetUrl);
     }
   }, [targetUrl, targetImage]);
 
-  // Handler for form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true); // Set loading to true while processing
+    setLoading(true);
 
-    // Randomly select an image URL from the uploaded images
     const randomIndex = Math.floor(Math.random() * uploadedImages.length);
     const randomSwapImageUrl = uploadedImages[randomIndex];
 
-    // Prepare FormData for the face swap API request
     const formData = new FormData();
     if (targetImage) {
-      formData.append('target_image', targetImage); // Append the uploaded image file
+      formData.append('target_image', targetImage);
     } else {
-      formData.append('target_url', targetUrl); // Append the URL if no file is uploaded
+      formData.append('target_url', targetUrl);
     }
-
-    formData.append('swap_url', randomSwapImageUrl); // Append the swap image URL
+    formData.append('swap_url', randomSwapImageUrl);
+    formData.append('mode', isMergeMode ? 'merge' : 'align'); // Add mode to form data
 
     try {
-      // Make a POST request to the face swap API
-      const { data } = await axios.post('https://image-swipper-backend.vercel.app/api/face-swap', formData, {
+      const { data } = await axios.post('http://localhost:3000/api/face-swap', formData, {
         headers: {
-          'Content-Type': 'multipart/form-data', // Set content type for FormData
+          'Content-Type': 'multipart/form-data',
         },
       });
 
-      // Update the result state with the URL of the processed image
       setResult(data.image_process_response.result_url);
     } catch (error) {
-      console.error('Error:', error); // Log any errors
+      console.error('Error:', error);
     }
 
-    setLoading(false); // Set loading to false after processing
+    setLoading(false);
   };
 
-  // Function to ensure the URL uses HTTPS
   const ensureHttps = (url) => {
     if (url.startsWith('http://')) {
       return url.replace('http://', 'https://');
@@ -66,27 +60,24 @@ function ImageSwipper({ uploadedImages }) {
     return url;
   };
 
-  // Handler for downloading the result image
   const handleDownload = async () => {
     if (result) {
       try {
-        const httpsUrl = ensureHttps(result); // Ensure the URL uses HTTPS
+        const httpsUrl = ensureHttps(result);
         console.log('Attempting to download image from URL:', httpsUrl);
 
-        // Fetch the image from the backend
         const response = await fetch(`https://image-swipper-backend.vercel.app/api/download-image?url=${encodeURIComponent(httpsUrl)}`);
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        // Convert the response to a blob and save the file
         const blob = await response.blob();
         saveAs(blob, 'result-image.jpg');
 
         console.log('Download successful');
       } catch (error) {
-        console.error('Download error:', error); // Log any errors during download
+        console.error('Download error:', error);
       }
     }
   };
@@ -114,12 +105,27 @@ function ImageSwipper({ uploadedImages }) {
               className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
             />
           </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-gray-700">Mode:</span>
+            <label className="inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                className="sr-only peer"
+                checked={isMergeMode}
+                onChange={() => setIsMergeMode(!isMergeMode)}
+              />
+              <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+              <span className="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">
+                {isMergeMode ? 'Merge' : 'Align'}
+              </span>
+            </label>
+          </div>
           <button
             type="submit"
             disabled={loading}
             className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
-            {loading ? 'Processing...' : 'Swap Faces'}
+            {loading ? 'Processing...' : isMergeMode ? 'Swap Faces' : 'Align Faces'}
           </button>
         </form>
 
