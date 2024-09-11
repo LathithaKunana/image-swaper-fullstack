@@ -39,7 +39,7 @@ function ImageSwipper({ uploadedImages }) {
     formData.append('mode', isMergeMode ? 'merge' : 'align'); // Add mode to form data
 
     try {
-      const { data } = await axios.post('http://localhost:3000/api/face-swap', formData, {
+      const { data } = await axios.post('https://image-swipper-backend.vercel.app/api/face-swap', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
