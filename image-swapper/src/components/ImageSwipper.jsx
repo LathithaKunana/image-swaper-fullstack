@@ -39,7 +39,7 @@ function ImageSwipper({ uploadedImages }) {
     formData.append('mode', isMergeMode ? 'merge' : 'align'); // Add mode to form data
 
     try {
-      const { data } = await axios.post('https://image-swipper-backend.vercel.app/api/face-swap', formData, {
+      const { data } = await axios.post('http://localhost:3000/api/face-swap', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -66,7 +66,7 @@ function ImageSwipper({ uploadedImages }) {
         const httpsUrl = ensureHttps(result);
         console.log('Attempting to download image from URL:', httpsUrl);
 
-        const response = await fetch(`https://image-swipper-backend.vercel.app/api/download-image?url=${encodeURIComponent(httpsUrl)}`);
+        const response = await fetch(`http://localhost:3000/api/download-image?url=${encodeURIComponent(httpsUrl)}`);
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
