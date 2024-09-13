@@ -20,9 +20,7 @@ const app = express();
 const port = 3000;
 
 app.use(
-  cors({
-    origin: 'https://image-swapper-frontend.vercel.app',
-  })
+  cors()
 );
 
 app.use(express.json());
@@ -62,6 +60,7 @@ app.post('/api/face-swap', upload.fields([{ name: 'target_image' }, { name: 'swa
     let targetImageUrl = req.body.target_url;
     let swapImageUrl = req.body.swap_url;
 
+    console.log("Form Data:", form);
     console.log("Initial target URL:", targetImageUrl);
     console.log("Initial swap URL:", swapImageUrl);
 
@@ -170,6 +169,53 @@ app.post('/api/face-swap', upload.fields([{ name: 'target_image' }, { name: 'swa
         console.error('Error processing face alignment:', error);
         res.status(500).json({ error: 'An error occurred while processing the images.' });
       }
+    } else if (mode === 'merge') {
+      console.log("Starting face merge...");
+      
+      const rapidApiHost = 'faceswap3.p.rapidapi.com';
+
+      try {
+        const response = await axios.post(`https://${rapidApiHost}/faceswap/v1/image`, form, {
+          headers: {
+            'x-rapidapi-key': process.env.RAPIDAPI_KEY,
+            'x-rapidapi-host': rapidApiHost,
+            ...form.getHeaders(),
+          },
+        });
+
+        console.log('API Response:', response.data);
+        const requestId = response.data.image_process_response.request_id;
+        console.log('Received request_id:', requestId);
+
+        setTimeout(async () => {
+          try {
+            if (!requestId) {
+              console.error('Request ID is undefined in response:', response.data);
+              return res.status(500).json({ error: 'Failed to retrieve request ID' });
+            }
+        
+            const resultData = new FormData();
+            resultData.append('request_id', requestId);
+        
+            const resultResponse = await axios.post(`https://${rapidApiHost}/result/`, resultData, {
+              headers: {
+                'x-rapidapi-key': process.env.RAPIDAPI_KEY,
+                'x-rapidapi-host': rapidApiHost,
+              },
+            });
+        
+            res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
+            console.log('Result API Response:', resultResponse.data);
+            res.json(resultResponse.data);
+          } catch (error) {
+            console.error('Error retrieving result:', error);
+            res.status(500).json({ error: 'An error occurred while retrieving the result' });
+          }
+        }, 1800);// Adjust delay if necessary
+      } catch (error) {
+        console.error('Error processing face merge:', error);
+        res.status(500).json({ error: 'An error occurred during face merge' });
+      }
     } else {
       res.status(400).json({ error: 'Invalid mode specified' });
     }
@@ -177,8 +223,7 @@ app.post('/api/face-swap', upload.fields([{ name: 'target_image' }, { name: 'swa
     console.error('Error processing request:', error);
     res.status(500).json({ error: 'An error occurred' });
   }
-});
-
+})
 
 app.get('/api/download-image', async (req, res) => {
   const imageUrl = req.query.url;

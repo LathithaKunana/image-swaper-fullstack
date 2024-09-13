@@ -11,6 +11,7 @@
   "license": "ISC",
   "description": "Image Swipper feature for video editing app",
   "dependencies": {
+    "@napi-rs/canvas": "^0.1.55",
     "axios": "^1.7.3",
     "canvas": "^2.11.2",
     "cloudinary": "^2.4.0",
