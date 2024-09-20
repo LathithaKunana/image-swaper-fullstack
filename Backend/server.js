@@ -28,6 +28,38 @@ cloudinary.config({
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
+const uploadAndCropFace = async (image) => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { 
+        crop: "thumb",
+        gravity: "face",
+        width: 400,  // Set a fixed width for consistency
+        height: 400  // Set a fixed height for consistency
+      },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result.secure_url);
+      }
+    );
+
+    if (Buffer.isBuffer(image)) {
+      uploadStream.end(image);
+    } else if (typeof image === 'string') {
+      axios({
+        url: image,
+        responseType: 'arraybuffer',
+      }).then(
+        response => {
+          uploadStream.end(Buffer.from(response.data));
+        }
+      ).catch(err => reject(err));
+    } else {
+      reject(new Error('Invalid image input'));
+    }
+  });
+};
+
 app.post(
   '/api/face-swap',
   upload.fields([{ name: 'target_image' }, { name: 'swap_image' }]),
@@ -75,78 +107,90 @@ app.post(
       console.log('Mode:', mode);
 
       if (mode === 'align') {
-        try {
-          console.log('Starting face alignment...');
+        console.log('Starting face alignment with Cloudinary processing...');
 
-          // Fetch the images as buffers
-          const targetImageBuffer = await axios
-            .get(targetImageUrl, { responseType: 'arraybuffer' })
-            .then((res) => res.data);
-          const swapImageBuffer = await axios
-            .get(swapImageUrl, { responseType: 'arraybuffer' })
-            .then((res) => res.data);
+        let targetImageUrl = req.body.target_url;
+        let swapImageUrl = req.body.swap_url;
 
-          // Process images using sharp
-          const targetImage = sharp(targetImageBuffer);
-          const swapImage = sharp(swapImageBuffer);
-
-          // Get metadata for both images
-          const [targetMeta, swapMeta] = await Promise.all([
-            targetImage.metadata(),
-            swapImage.metadata()
-          ]);
-
-          // Calculate dimensions for the half faces
-          const halfWidth = Math.min(targetMeta.width, swapMeta.width) / 2;
-          const height = Math.min(targetMeta.height, swapMeta.height);
-
-          // Extract left half of target image
-          const leftHalf = await targetImage
-            .extract({ left: 0, top: 0, width: halfWidth, height })
-            .toBuffer();
-
-          // Extract right half of swap image
-          const rightHalf = await swapImage
-            .extract({ left: swapMeta.width - halfWidth, top: 0, width: halfWidth, height })
-            .toBuffer();
-
-          // Combine both halves
-          const finalImage = await sharp({
-            create: {
-              width: halfWidth * 2,
-              height,
-              channels: 4,
-              background: { r: 255, g: 255, b: 255, alpha: 0 }
-            }
-          })
-            .composite([
-              { input: leftHalf, left: 0, top: 0 },
-              { input: rightHalf, left: halfWidth, top: 0 }
-            ])
-            .png()
-            .toBuffer();
-
-          // Upload final image to Cloudinary
-          const uploadResult = await new Promise((resolve, reject) => {
-            cloudinary.uploader.upload_stream((error, result) => {
-              if (error) reject(error);
-              else resolve(result);
-            }).end(finalImage);
-          });
-
-          console.log('Uploaded final aligned image:', uploadResult.secure_url);
-
-          res.json({
-            image_process_response: {
-              result_url: uploadResult.secure_url,
-            },
-          });
-        } catch (error) {
-          console.error('Error processing face alignment:', error);
-          res
-            .status(500)
-            .json({ error: 'An error occurred while processing the images.' });
+        // Process target image
+        if (req.files['target_image']) {
+          const targetImage = req.files['target_image'][0];
+          targetImageUrl = await uploadAndCropFace(targetImage.buffer);
+        } else {
+          targetImageUrl = await uploadAndCropFace(targetImageUrl);
         }
+
+        // Process swap image
+        if (req.files['swap_image']) {
+          const swapImage = req.files['swap_image'][0];
+          swapImageUrl = await uploadAndCropFace(swapImage.buffer);
+        } else {
+          swapImageUrl = await uploadAndCropFace(swapImageUrl);
+        }
+
+        console.log('Processed target image:', targetImageUrl);
+        console.log('Processed swap image:', swapImageUrl);
+
+        // Fetch the processed images
+        const [targetImageBuffer, swapImageBuffer] = await Promise.all([
+          axios.get(targetImageUrl, { responseType: 'arraybuffer' }).then(res => res.data),
+          axios.get(swapImageUrl, { responseType: 'arraybuffer' }).then(res => res.data)
+        ]);
+
+        const targetImage = sharp(targetImageBuffer);
+        const swapImage = sharp(swapImageBuffer);
+
+        // Get metadata for both images
+        const [targetMeta, swapMeta] = await Promise.all([
+          targetImage.metadata(),
+          swapImage.metadata()
+        ]);
+
+        // Calculate dimensions for the half faces
+        const halfWidth = Math.min(targetMeta.width, swapMeta.width) / 2;
+        const height = Math.min(targetMeta.height, swapMeta.height);
+
+        // Extract left half of target image
+        const leftHalf = await targetImage
+          .extract({ left: 0, top: 0, width: halfWidth, height })
+          .toBuffer();
+
+        // Extract right half of swap image
+        const rightHalf = await swapImage
+          .extract({ left: swapMeta.width - halfWidth, top: 0, width: halfWidth, height })
+          .toBuffer();
+
+        // Combine both halves
+        const finalImage = await sharp({
+          create: {
+            width: halfWidth * 2,
+            height,
+            channels: 4,
+            background: { r: 255, g: 255, b: 255, alpha: 0 }
+          }
+        })
+          .composite([
+            { input: leftHalf, left: 0, top: 0 },
+            { input: rightHalf, left: halfWidth, top: 0 }
+          ])
+          .png()
+          .toBuffer();
+
+        // Upload final image to Cloudinary
+        const uploadResult = await new Promise((resolve, reject) => {
+          cloudinary.uploader.upload_stream((error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }).end(finalImage);
+        });
+
+        console.log('Uploaded final aligned image:', uploadResult.secure_url);
+
+        res.json({
+          image_process_response: {
+            result_url: uploadResult.secure_url,
+          },
+        });
       } else if (mode === 'merge') {
         console.log('Starting face merge...');
 
