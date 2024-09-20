@@ -3,23 +3,19 @@ const axios = require('axios');
 const FormData = require('form-data');
 const multer = require('multer');
 const cors = require('cors');
-const env = require('dotenv');
 const cloudinary = require('cloudinary').v2;
 const sharp = require('sharp');
 
-const canvas = require('@napi-rs/canvas');
-const faceapi = require('face-api.js');
-const { Canvas, Image, ImageData } = canvas;
-
-faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
-
-env.config();
+// Load environment variables
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 app.use(cors({
-  origin: 'https://image-swapper-frontend.vercel.app',
+  origin:"https://image-swapper-frontend.vercel.app"
 }));
 app.use(express.json());
 
@@ -31,12 +27,6 @@ cloudinary.config({
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
-
-const loadFaceApiModels = async () => {
-  await faceapi.nets.ssdMobilenetv1.loadFromDisk('./models');
-  await faceapi.nets.faceLandmark68Net.loadFromDisk('./models');
-};
-loadFaceApiModels();
 
 app.post(
   '/api/face-swap',
@@ -60,7 +50,6 @@ app.post(
       let targetImageUrl = req.body.target_url;
       let swapImageUrl = req.body.swap_url;
 
-      console.log('Form Data:', form);
       console.log('Initial target URL:', targetImageUrl);
       console.log('Initial swap URL:', swapImageUrl);
 
