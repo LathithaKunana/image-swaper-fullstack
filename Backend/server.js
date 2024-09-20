@@ -248,7 +248,7 @@ app.post(
                 .status(500)
                 .json({ error: 'An error occurred while retrieving the result' });
             }
-          }, 1800); // Adjust delay if necessary
+          }, 2000); // Adjust delay if necessary
         } catch (error) {
           console.error('Error processing face merge:', error);
           res.status(500).json({ error: 'An error occurred during face merge' });
