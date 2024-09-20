@@ -18,7 +18,9 @@ env.config();
 const app = express();
 const port = 3000;
 
-app.use(cors());
+app.use(cors({
+  origin: 'https://image-swapper-frontend.vercel.app',
+}));
 app.use(express.json());
 
 cloudinary.config({
@@ -204,7 +206,7 @@ app.post(
                 }
               );
 
-              res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
+              res.setHeader('Access-Control-Allow-Origin', 'https://image-swapper-frontend.vercel.app');
               console.log('Result API Response:', resultResponse.data);
               res.json(resultResponse.data);
             } catch (error) {
