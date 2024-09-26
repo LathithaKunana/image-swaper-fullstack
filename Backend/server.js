@@ -34,8 +34,8 @@ const uploadAndCropFace = async (image) => {
       { 
         crop: "thumb",
         gravity: "face",
-        width: 200,  // Set a fixed width for consistency
-        height: 200  // Set a fixed height for consistency
+        // width: 200,  // Set a fixed width for consistency
+        // height: 200  // Set a fixed height for consistency
       },
       (error, result) => {
         if (error) return reject(error);
