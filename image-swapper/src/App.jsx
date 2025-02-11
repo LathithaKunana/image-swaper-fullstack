@@ -36,10 +36,10 @@ function App() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-800 relative">
+    <div className="flex h-screen overflow-hidden bg-gray-200 relative">
       {/* MediaBar component */}
       <div
-        className={`fixed top-0 left-0 h-full bg-gray-900 transition-transform duration-300 ease-in-out z-20 ${
+        className={`fixed top-0 left-0 h-full bg-gray-500 transition-transform duration-300 ease-in-out z-20 ${
           isMediaBarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
         style={{ width: "90%", maxWidth: "400px" }} // Adjust width as needed
@@ -60,7 +60,7 @@ function App() {
       {!isMediaBarOpen && (
         <button
           onClick={toggleMediaBar}
-          className="absolute top-4 left-4 z-10 bg-gray-700 text-white p-2 rounded-full"
+          className="absolute top-4 left-4 z-10 bg-fuchsia-600 text-white p-2 rounded-full"
         >
           <ChevronRightIcon className="h-6 w-6" />
         </button>

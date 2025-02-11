@@ -83,7 +83,7 @@ function ImageSwipper({ uploadedImages }) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-start p-4 bg-gray-800 overflow-auto">
+    <div className="min-h-screen flex flex-col items-center justify-start p-4 bg-gray-200 overflow-auto">
       <div className="w-full max-w-xl bg-white rounded-lg shadow-md p-4 sm:p-6">
         <h1 className="text-2xl font-semibold mb-4 text-center">Face Swap Tool</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -102,7 +102,7 @@ function ImageSwipper({ uploadedImages }) {
             <input
               type="file"
               onChange={(e) => setTargetImage(e.target.files[0])}
-              className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+              className="mt-1 block w-full text-sm text-fuchsia-900 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-fuchsia-100 file:text-fuchsia-900 hover:file:bg-indigo-100"
             />
           </div>
           <div className="flex items-center justify-between">
@@ -123,7 +123,7 @@ function ImageSwipper({ uploadedImages }) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-fuchsia-900 hover:bg-fuchsia-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             {loading ? 'Processing...' : isMergeMode ? 'Swap Faces' : 'Align Faces'}
           </button>
@@ -150,7 +150,7 @@ function ImageSwipper({ uploadedImages }) {
             />
             <button
               onClick={handleDownload}
-              className="mt-4 w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+              className="mt-4 w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-fuchsia-600 hover:bg-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
             >
               Download Image
             </button>
