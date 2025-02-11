@@ -48,7 +48,7 @@ function MediaBar({ toggleMediaBar, onUpload }) {
       {/* Button to toggle the visibility of the media bar */}
       <button
           onClick={toggleMediaBar}
-          className="top-4 ml-72 z-10 bg-gray-700 text-white p-2 rounded-full"
+          className="top-4 ml-72 z-10 bg-fuchsia-600 text-white p-2 rounded-full"
         >
           <ChevronLeftIcon className="h-6 w-6" />
         </button>
@@ -67,7 +67,7 @@ function MediaBar({ toggleMediaBar, onUpload }) {
           {/* Label styled as a button for file input */}
           <label
             htmlFor="file-upload"
-            className="flex items-center cursor-pointer bg-indigo-600 text-white px-2 py-2 rounded-xl shadow hover:bg-indigo-700"
+            className="flex items-center cursor-pointer bg-fuchsia-900 text-white px-2 py-2 rounded-xl shadow hover:bg-fuchsia-700"
           >
             <PlusCircleIcon className="h-5 w-5" />
           </label>
